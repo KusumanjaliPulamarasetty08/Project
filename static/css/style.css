@@ -1,0 +1,204 @@
+/* General Body & Container */
+body {
+    background-color: #e9ecef;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Passport Styling */
+.passport-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.passport {
+    width: 100%;
+    max-width: 550px;
+    height: auto;
+    aspect-ratio: 1.45 / 1;
+    background-color: #f5f3e9;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.passport-header {
+    text-align: center;
+    border-bottom: 2px solid #bda87f;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    color: #3a3a3a;
+}
+
+.passport-body {
+    display: flex;
+    gap: 20px;
+    flex-grow: 1;
+}
+
+.photo-section {
+    flex-basis: 30%;
+}
+
+.passport-photo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border: 1px solid #ddd;
+    background-color: #fff;
+}
+
+.info-section {
+    flex-basis: 70%;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 5px 15px;
+}
+
+.passport-field {
+    flex: 1 1 45%;
+}
+
+.passport-field.full-width {
+    flex-basis: 100%;
+}
+
+.passport-field .label {
+    display: block;
+    font-size: 0.7rem;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+.passport-field .data {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #212529;
+}
+
+.passport-mrz {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 10px;
+    margin-top: auto;
+    font-family: 'OCRB', 'Courier New', monospace;
+    letter-spacing: 2px;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+/* Boarding Pass Styling */
+.boarding-pass {
+    border-radius: 15px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    color: #333;
+    overflow: hidden;
+}
+
+/* Style One */
+.boarding-pass.style-one {
+    background: linear-gradient(135deg, #ffffff 0%, #f7f7f7 100%);
+    border: 1px solid #e0e0e0;
+}
+
+.style-one .header {
+    background-color: #154284;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.style-one .airline-logo {
+    height: 30px;
+    filter: brightness(0) invert(1);
+}
+
+.style-one .flight-info {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 2px dashed #ddd;
+}
+
+.flight-info p { font-size: 1.8rem; font-weight: bold; margin: 0; }
+.flight-info small { color: #888; }
+.flight-icon { font-size: 2rem; color: #154284; }
+
+.style-one .passenger-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 20px;
+}
+.passenger-info p { font-weight: 600; margin: 0; }
+.passenger-info small { color: #888; }
+
+
+/* Style Two */
+.boarding-pass.style-two {
+    display: flex;
+    background: #fff;
+}
+
+.style-two .main-content {
+    flex-grow: 1;
+    padding: 20px;
+}
+.style-two h4 { color: #d9534f; font-weight: bold; }
+.style-two .flight-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin: 15px 0;
+}
+.style-two .arrow { font-size: 1.5rem; color: #d9534f; }
+.style-two .pax-details {
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+.style-two .detail-item { margin-bottom: 5px; }
+
+.style-two .stub {
+    flex-basis: 120px;
+    background-color: #f7f7f7;
+    border-left: 2px dashed #ccc;
+    padding: 20px 10px;
+    text-align: center;
+}
+.style-two .stub h5 {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    margin: 0 auto 15px auto;
+    letter-spacing: 2px;
+}
+.style-two .stub p { font-size: 0.8rem; margin-top: 10px; }
+.style-two .barcode {
+    height: 80px;
+    background: repeating-linear-gradient(
+        to right,
+        #333,
+        #333 2px,
+        #fff 2px,
+        #fff 4px
+    );
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .passport-body {
+        flex-direction: column;
+    }
+    .info-section {
+        gap: 8px;
+    }
+}

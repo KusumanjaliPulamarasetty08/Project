@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Generated Documents</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container my-5">
+        <div class="text-center">
+            <h1>Your Generated Documents</h1>
+            <p class="lead">Here is a preview based on the information you provided.</p>
+        </div>
+
+        <h2 class="mt-5">Passport Preview</h2>
+        <div class="passport-container">
+            <div class="passport">
+                <div class="passport-header">
+                    <h4>भारत गणराज्य / REPUBLIC OF INDIA</h4>
+                </div>
+                <div class="passport-body">
+                    <div class="photo-section">
+                        <img src="{{ photo_url }}" alt="Profile Photo" class="passport-photo">
+                    </div>
+                    <div class="info-section">
+                        <div class="passport-field"><span class="label">टाइप / Type</span><span class="data">P</span></div>
+                        <div class="passport-field"><span class="label">राष्ट्र कोड / Country Code</span><span class="data">{{ data.country_code }}</span></div>
+                        <div class="passport-field"><span class="label">पासपोर्ट सं. / Passport No.</span><span class="data">{{ data.passport_no }}</span></div>
+                        <div class="passport-field full-width"><span class="label">उपनाम / Surname</span><span class="data">{{ data.surname }}</span></div>
+                        <div class="passport-field full-width"><span class="label">दिया गया नाम / Given Name(s)</span><span class="data">{{ data.given_names }}</span></div>
+                        <div class="passport-field full-width"><span class="label">राष्ट्रीयता / Nationality</span><span class="data">{{ data.nationality }}</span></div>
+                        <div class="passport-field"><span class="label">लिंग / Sex</span><span class="data">{{ data.gender }}</span></div>
+                        <div class="passport-field"><span class="label">जन्म की तारीख / Date of Birth</span><span class="data">{{ dob.strftime('%d / %m / %Y') }}</span></div>
+                        <div class="passport-field full-width"><span class="label">जन्म स्थान / Place of Birth</span><span class="data">{{ data.place_of_birth }}</span></div>
+                        <div class="passport-field"><span class="label">जारी करने की तारीख / Date of Issue</span><span class="data">{{ issue_date.strftime('%d / %m / %Y') }}</span></div>
+                        <div class="passport-field"><span class="label">समाप्ति की तारीख / Date of Expiry</span><span class="data">{{ expiry_date.strftime('%d / %m / %Y') }}</span></div>
+                    </div>
+                </div>
+                <div class="passport-mrz">
+                    <code>{{ mrz_lines[0] }}</code>
+                    <code>{{ mrz_lines[1] }}</code>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="mt-5">Demo Boarding Passes</h2>
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="boarding-pass style-one">
+                    <div class="header">
+                        <img src="https://logodix.com/logo/2115982.png" alt="Airline Logo" class="airline-logo">
+                        <h3>BOARDING PASS</h3>
+                    </div>
+                    <div class="flight-info">
+                        <div>
+                            <small>From</small>
+                            <p>{{ data.boarding.split(' ')[0] }}</p>
+                            <span>{{ data.boarding.split(' ')[1] }}</span>
+                        </div>
+                        <div class="flight-icon">✈️</div>
+                        <div>
+                            <small>To</small>
+                            <p>{{ data.landing.split(' ')[0] }}</p>
+                            <span>{{ data.landing.split(' ')[1] }}</span>
+                        </div>
+                    </div>
+                    <div class="passenger-info">
+                        <div><small>Passenger</small><p>{{ data.given_names }} {{ data.surname }}</p></div>
+                        <div><small>Gate</small><p>A12</p></div>
+                        <div><small>Seat</small><p>24A</p></div>
+                        <div><small>Boarding Time</small><p>10:30</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="boarding-pass style-two">
+                    <div class="main-content">
+                        <h4>AeroFly Airlines</h4>
+                        <div class="flight-details">
+                            <span>{{ data.boarding }}</span>
+                            <span class="arrow">→</span>
+                            <span>{{ data.landing }}</span>
+                        </div>
+                        <div class="pax-details">
+                            <div class="detail-item"><strong>PASSENGER:</strong> {{ data.given_names }} {{ data.surname }}</div>
+                            <div class="detail-item"><strong>FLIGHT:</strong> AF2025</div>
+                            <div class="detail-item"><strong>SEAT:</strong> 18C</div>
+                        </div>
+                    </div>
+                    <div class="stub">
+                        <h5>BOARDING</h5>
+                        <div class="barcode"></div>
+                        <p>{{ data.boarding.split(' ')[1] }} → {{ data.landing.split(' ')[1] }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-secondary">Go Back</a>
+        </div>
+    </div>
+</body>
+</html>
