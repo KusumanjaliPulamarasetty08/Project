@@ -1,6 +1,7 @@
 import os
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, session
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 
 # --- Configuration ---
@@ -9,14 +10,29 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['SECRET_KEY'] = 'a_super_secret_key' # Required for flashing messages
+app.config['SECRET_KEY'] = 'a_super_secret_key'  # Required for sessions and flashing messages
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload size
 
+# In a real application, you would use a database. For this demo, we'll use a simple dictionary
+users = {}
+
 # --- Helper Functions ---
+from functools import wraps
+
 def allowed_file(filename):
     """Checks if the file extension is allowed."""
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def login_required(f):
+    """Decorator to ensure user is logged in before accessing certain routes."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in to access this page.')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def generate_mrz(passport_type, country_code, surname, given_names, passport_no, nationality, dob, gender, expiry_date):
     """Generates a simplified Machine-Readable Zone (MRZ) string."""
@@ -38,6 +54,7 @@ def generate_mrz(passport_type, country_code, surname, given_names, passport_no,
 
 # --- Routes ---
 @app.route('/')
+@login_required
 def index():
     """Renders the main form page."""
     # List of major international cities for dropdowns
@@ -49,7 +66,61 @@ def index():
     ]
     return render_template('index.html', cities=cities)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Handle user login."""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        remember = request.form.get('remember') == 'on'
+
+        if email in users and check_password_hash(users[email]['password'], password):
+            session['user_id'] = email
+            session.permanent = remember
+            flash('Welcome back!')
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid email or password.')
+
+    return render_template('login.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    """Handle user registration."""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        fullname = request.form.get('fullname')
+        terms = request.form.get('terms') == 'on'
+
+        if not terms:
+            flash('You must accept the terms and conditions.')
+            return redirect(url_for('signup'))
+
+        if email in users:
+            flash('Email already registered.')
+            return redirect(url_for('signup'))
+
+        # Store user data (in a real app, this would go to a database)
+        users[email] = {
+            'password': generate_password_hash(password),
+            'fullname': fullname
+        }
+
+        flash('Registration successful! Please log in.')
+        return redirect(url_for('login'))
+
+    return render_template('signup.html')
+
+@app.route('/logout')
+def logout():
+    """Handle user logout."""
+    session.pop('user_id', None)
+    flash('You have been logged out.')
+    return redirect(url_for('login'))
+
 @app.route('/generate', methods=['POST'])
+@login_required
 def generate():
     """Processes the form and generates the preview page."""
     if request.method == 'POST':
