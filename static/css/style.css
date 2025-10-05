@@ -503,6 +503,33 @@ label,
 .password-strength.medium { background-color: #ffc107; }
 .password-strength.strong { background-color: #198754; }
 
+/* Password toggle button styling */
+.toggle-password {
+    cursor: pointer;
+    border-color: var(--input-border);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.toggle-password:hover {
+    background-color: var(--button-bg);
+    color: white;
+    border-color: var(--button-bg);
+}
+
+[data-theme="dark"] .toggle-password {
+    color: var(--text-color);
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+[data-theme="dark"] .toggle-password:hover {
+    background-color: var(--button-bg);
+    color: white;
+    border-color: var(--button-bg);
+}
+
 /* Form checkbox styles */
 .form-check-input:checked {
     background-color: var(--button-bg);
