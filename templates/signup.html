@@ -32,11 +32,14 @@
                 <div class="card signup-card">
                     <div class="card-body p-4 p-md-5">
                         <h3 class="text-center mb-4">Create Account</h3>
-                        {% with messages = get_flashed_messages() %}
+                        {% with messages = get_flashed_messages(with_categories=true) %}
                             {% if messages %}
-                                <div class="alert alert-danger">
-                                    {{ messages[0] }}
-                                </div>
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category if category != '_' else 'danger' }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
                             {% endif %}
                         {% endwith %}
                         
@@ -60,6 +63,7 @@
                                     </button>
                                 </div>
                                 <div class="invalid-feedback password-feedback">Password must be at least 8 characters long and include a number, a letter and a special character.</div>
+                                <small class="form-text text-muted mt-1">Password must be at least 8 characters long and include at least one letter, one number, and one special character.</small>
                             </div>
                             <div class="mb-3">
                                 <label for="confirm_password" class="form-label">Confirm Password</label>

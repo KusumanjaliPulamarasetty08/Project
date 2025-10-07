@@ -1,63 +1,72 @@
+# ======================================================
+# IMPORTS AND CONFIGURATION
+# ======================================================
 import os
 from flask import Flask, render_template, request, url_for, flash, redirect, session
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
+from functools import wraps
 
-# --- Configuration ---
+# --- File Upload Configuration ---
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
+# --- Flask App Configuration ---
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = 'a_super_secret_key'  # Required for sessions and flashing messages
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload size
 
-# In a real application, you would use a database. For this demo, we'll use a simple dictionary
+# --- User Storage ---
+# In a production app, this would be a database
 users = {}
 
-# --- Helper Functions ---
-from functools import wraps
+# ======================================================
+# HELPER FUNCTIONS
+# ======================================================
 
 def allowed_file(filename):
-    """Checks if the file extension is allowed."""
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    """Validates if the uploaded file has an allowed extension"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def login_required(f):
-    """Decorator to ensure user is logged in before accessing certain routes."""
+    """Authentication decorator to protect routes that require login"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            flash('Please log in to access this page.')
+            flash('Please log in to access this page.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
 
 def generate_mrz(passport_type, country_code, surname, given_names, passport_no, nationality, dob, gender, expiry_date):
-    """Generates a simplified Machine-Readable Zone (MRZ) string."""
-    # Line 1
+    """Creates a simplified Machine-Readable Zone (MRZ) for passport display"""
+    # Format first MRZ line: Type, Country, Name
     surname_mrz = surname.upper().replace(" ", "<")
     given_names_mrz = given_names.upper().replace(" ", "<")
     line1 = f"{passport_type}<{country_code}{surname_mrz}<<{given_names_mrz}"
-    line1 = (line1 + '<' * 44)[:44]
+    line1 = (line1 + '<' * 44)[:44]  # Pad to 44 characters
 
-    # Line 2
+    # Format second MRZ line: Document number, Nationality, DOB, Gender, Expiry date
     passport_no_mrz = (passport_no.upper() + '<' * 10)[:10]
     dob_mrz = dob.strftime('%y%m%d')
     expiry_date_mrz = expiry_date.strftime('%y%m%d')
-    # Dummy check digits for demonstration
+    # Note: Using dummy check digits (1, 6, 0) for demonstration
     line2 = f"{passport_no_mrz}1{nationality}{dob_mrz}1{gender}{expiry_date_mrz}6<<<<<<<<<<<<<<0"
     
     return [line1, line2]
 
 
-# --- Routes ---
+# ======================================================
+# ROUTE DEFINITIONS
+# ======================================================
+
 @app.route('/')
 @login_required
 def index():
-    """Renders the main form page."""
-    # List of major international cities for dropdowns
+    """Main page - displays the passport and ticket generation form"""
+    # Predefined list of major international airports for the flight dropdowns
     cities = [
         "New York (JFK)", "London (LHR)", "Paris (CDG)", "Tokyo (HND)",
         "Dubai (DXB)", "Singapore (SIN)", "Hong Kong (HKG)", "Los Angeles (LAX)",
@@ -68,63 +77,93 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Handle user login."""
+    """User authentication - handles login form and validation"""
     if request.method == 'POST':
+        # Get form data
         email = request.form.get('email')
         password = request.form.get('password')
         remember = request.form.get('remember') == 'on'
 
+        # Validate credentials
         if email in users and check_password_hash(users[email]['password'], password):
+            # Set session data
             session['user_id'] = email
-            session.permanent = remember
-            flash('Welcome back!')
+            session.permanent = remember  # Keep session if remember is checked
+            flash('Welcome', 'success')
             return redirect(url_for('index'))
         else:
-            flash('Invalid email or password.')
+            flash('Invalid email or password.', 'danger')
 
+    # GET request - show login form
     return render_template('login.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    """Handle user registration."""
+    """User registration - handles new account creation with validation"""
     if request.method == 'POST':
+        # Get form data
         email = request.form.get('email')
         password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
         fullname = request.form.get('fullname')
         terms = request.form.get('terms') == 'on'
 
+        # --- Form Validation ---
+        # 1. Terms acceptance
         if not terms:
-            flash('You must accept the terms and conditions.')
+            flash('You must accept the terms and conditions.', 'warning')
             return redirect(url_for('signup'))
 
+        # 2. Email uniqueness
         if email in users:
-            flash('Email already registered.')
+            flash('Email already registered.', 'danger')
+            return redirect(url_for('signup'))
+            
+        # 3. Password match
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return redirect(url_for('signup'))
+            
+        # 4. Password length
+        if len(password) < 8:
+            flash('Password must be at least 8 characters long.', 'danger')
+            return redirect(url_for('signup'))
+            
+        # 5. Password complexity
+        has_letter = any(c.isalpha() for c in password)
+        has_number = any(c.isdigit() for c in password)
+        has_special = any(not c.isalnum() for c in password)
+        
+        if not (has_letter and has_number and has_special):
+            flash('Password must include at least one letter, one number, and one special character.', 'danger')
             return redirect(url_for('signup'))
 
-        # Store user data (in a real app, this would go to a database)
+        # Store user data (using secure password hashing)
         users[email] = {
             'password': generate_password_hash(password),
             'fullname': fullname
         }
 
-        flash('Registration successful! Please log in.')
+        flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('login'))
 
+    # GET request - show signup form
     return render_template('signup.html')
 
 @app.route('/logout')
 def logout():
-    """Handle user logout."""
+    """User logout - clears session data"""
+    # Remove user_id from session
     session.pop('user_id', None)
-    flash('You have been logged out.')
+    flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
 @app.route('/generate', methods=['POST'])
 @login_required
 def generate():
-    """Processes the form and generates the preview page."""
+    """Document generation - processes form data and creates passport/ticket preview"""
     if request.method == 'POST':
-        # --- Collect Form Data ---
+        # --- 1. Collect Form Data ---
         form_data = {
             "surname": request.form.get('surname'),
             "given_names": request.form.get('given_names'),
@@ -140,52 +179,35 @@ def generate():
             "landing": request.form.get('landing')
         }
 
-        # --- Handle File Upload ---
-        if 'profile_photo' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        
-        file = request.files['profile_photo']
-
-        if file.filename == '':
-            flash('No selected file')
+        # --- 2. Process Profile Photo Upload ---
+        photo_url = process_photo_upload(request)
+        if not photo_url:
             return redirect(url_for('index'))
 
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            # Ensure the upload folder exists
-            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
-            photo_url = url_for('static', filename=f'uploads/{filename}')
-        else:
-            flash('Invalid file type. Please upload a JPG, JPEG, or PNG file.')
-            return redirect(url_for('index'))
-
-        # --- Data Processing ---
+        # --- 3. Process Date Information ---
         try:
-            # Convert date strings to datetime objects for formatting
+            # Convert date strings to datetime objects
             dob = datetime.datetime.strptime(form_data['dob_str'], '%Y-%m-%d')
             issue_date = datetime.datetime.strptime(form_data['issue_date_str'], '%Y-%m-%d')
             expiry_date = datetime.datetime.strptime(form_data['expiry_date_str'], '%Y-%m-%d')
         except ValueError:
-            flash('Invalid date format provided.')
+            flash('Invalid date format provided.', 'danger')
             return redirect(url_for('index'))
 
-        # Generate MRZ
+        # --- 4. Generate Machine Readable Zone (MRZ) ---
         mrz_lines = generate_mrz(
             passport_type='P',
             country_code=form_data['country_code'],
             surname=form_data['surname'],
             given_names=form_data['given_names'],
             passport_no=form_data['passport_no'],
-            nationality=form_data['country_code'], # Using country code for nationality in MRZ
+            nationality=form_data['country_code'],  # Using country code for nationality
             dob=dob,
-            gender=form_data['gender'][0].upper(), # 'M' or 'F'
+            gender=form_data['gender'][0].upper(),  # Extract first letter (M or F)
             expiry_date=expiry_date
         )
 
-        # --- Render Preview ---
+        # --- 5. Render Preview Page ---
         return render_template(
             'preview.html',
             data=form_data,
@@ -198,5 +220,33 @@ def generate():
 
     return redirect(url_for('index'))
 
+
+def process_photo_upload(request):
+    """Helper function to handle photo upload validation and processing"""
+    if 'profile_photo' not in request.files:
+        flash('No file part', 'warning')
+        return None
+    
+    file = request.files['profile_photo']
+
+    if file.filename == '':
+        flash('No selected file', 'warning')
+        return None
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        # Ensure the upload folder exists
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        return url_for('static', filename=f'uploads/{filename}')
+    else:
+        flash('Invalid file type. Please upload a JPG, JPEG, or PNG file.', 'danger')
+        return None
+
+# ======================================================
+# APPLICATION ENTRY POINT
+# ======================================================
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)  # Set to False in production
