@@ -154,7 +154,29 @@
     </script>
     
     <footer class="footer">
-        <p>&copy; 2025 Passport & Ticket Generator. All rights reserved.</p>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h5>Passport & Ticket Generator</h5>
+                <p>Create professional passport previews and boarding passes instantly.</p>
+            </div>
+            <div class="footer-section">
+                <h5>Quick Links</h5>
+                <ul>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="#" onclick="document.getElementById('generator-form').scrollIntoView({behavior: 'smooth'})">Generate Now</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h5>Contact</h5>
+                <p>Email: support@passportgen.com</p>
+                <p>Phone: +1 (555) 123-4567</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Passport & Ticket Generator. All rights reserved.</p>
+        </div>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
